@@ -1,0 +1,7 @@
+{
+	"github.com/xpwu/go-config/config:configTest": {
+		"LogLevel": 45,
+		"Name": "xpwu-0",
+		"Num": 11
+	}
+}
