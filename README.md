@@ -17,3 +17,25 @@
 
 ## Note 
 配置数据的赋值是在Read()中执行，而Read()都是在init()后执行，所以在init()获取不到真实的配置值。
+
+## Tag
+
+```
+// tag: `conf:name,tips` => key = name; tips = tips
+// tag: `conf:name,tips,tip2` => key = name; tips = tips,tip2
+// tag: `conf:name` => key = name; tips = ""
+// tag: `conf:name,` => key = name; tips = ""
+// tag: `conf:,tips` => key = ""; tips = tips
+// tag: `conf:,tips,tip2` => key = ""; tips = tips,tip2
+// tag: `conf:,` => key = ""; tips = ""
+// tag: `conf:` => key = ""; tips = ""
+// tag: `` => key = ""; tips = ""
+```
+
+
+## jsonConfig  
+默认实现了json格式的配置输出，${key}-tips 的值即为对应key的帮助信息
+
+## Configurator
+可以通过Configurator接口实现其他的配置输出格式；在main()中调用SetConfigurator()
+设置具体的输出类
