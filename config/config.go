@@ -7,22 +7,6 @@ import (
 	"strings"
 )
 
-//func (c OneConfig) sameField(other OneConfig) error {
-//	for oKey := range other {
-//		if _, ok := c[oKey]; !ok {
-//			return errors.New("conf key<" + oKey + "> is not the same")
-//		}
-//	}
-//
-//	for oKey := range c {
-//		if _, ok := other[oKey]; !ok {
-//			return errors.New("conf key<" + oKey + "> is not the same")
-//		}
-//	}
-//
-//	return nil
-//}
-
 var (
 	confer     Configurator = &JsonConfig{}
 	allConfigs              = make(map[string]interface{})
@@ -204,7 +188,7 @@ func Print() {
 	confer.Print(getAllDefaultConfigs())
 }
 
-// todo 
+// todo
 func Valid() error {
 	return nil
 }
