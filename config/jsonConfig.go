@@ -4,65 +4,56 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
+  "github.com/xpwu/go-config/config/jsontype"
   "io/ioutil"
+  "os"
   "path"
 )
 
 type JsonConfig struct {
   ReadFile string
-  PrintDir string
-  ExeAbsDir   string
+  PrintFile string
 }
 
-func defaultConfigFile()string  {
-  return "config.json"
+func absFilePath(setValue, defaultValue string) string {
+  filePath := setValue
+
+  if filePath == "" {
+    filePath = defaultValue
+  }
+
+  if !path.IsAbs(filePath) {
+    pwd, err := os.Getwd()
+    if err != nil {
+      panic(err)
+    }
+
+    filePath = path.Join(pwd, filePath)
+  }
+
+  return filePath
 }
 
-func Tips()string  {
-  return "配置文件，如果没有设置，则为'<exeDir>/'" + defaultConfigFile()
-}
+func (j *JsonConfig) Read(allDefaultConfigs jsontype.Type) (allValues jsontype.Type) {
+  filePath := absFilePath(j.ReadFile, "config.json")
 
-func (j *JsonConfig) Read() (allValues map[string]Json) {
-  if j.ReadFile == "" {
-    j.ReadFile = path.Join(j.ExeAbsDir, defaultConfigFile())
-  }
-
-  if !path.IsAbs(j.ReadFile) {
-    j.ReadFile = path.Join(j.ExeAbsDir, j.ReadFile)
-  }
-
-  if path.Ext(j.ReadFile) != ".json" {
-    panic("config file name must be end '.json'")
-  }
-
-  data,err := ioutil.ReadFile(j.ReadFile)
+  data,err := ioutil.ReadFile(filePath)
   if err != nil {
-    panic("cant read file: " + j.ReadFile)
+    panic("cant read file: " + filePath)
   }
 
-  readM := make(map[string]map[string]interface{})
-  if err = json.Unmarshal(data, &readM); err != nil {
-    panic("cant json.unmarshal from file: " + j.ReadFile + ". " + err.Error())
-  }
+  allValues, err = jsontype.FromJson(data)
 
-  allValues = make(map[string]Json)
-  for key,m := range readM {
-    js,_ := json.Marshal(m)
-    allValues[key] = js
+  if err != nil {
+    panic("cant jsontype.FromJson() from file: " + filePath + ". " + err.Error())
   }
 
   return
 }
 
-func (j *JsonConfig) Print(allValues map[string]Json) {
-  printM := make(map[string]map[string]interface{})
-  for key,js := range allValues {
-    m := make(map[string]interface{})
-    _ = json.Unmarshal(js, &m)
-    printM[key] = m
-  }
+func (j *JsonConfig) Print(allDefaultConfigs jsontype.Type) {
 
-  data,err := json.Marshal(printM)
+  data,err := json.Marshal(allDefaultConfigs)
   if err != nil {
     panic("cant json.marshal for config. " + err.Error())
   }
@@ -72,15 +63,13 @@ func (j *JsonConfig) Print(allValues map[string]Json) {
     panic(err.Error())
   }
 
-  if err = ioutil.WriteFile(j.printFileName(), buffer.Bytes(),
+  filePath := absFilePath(j.PrintFile, "config.json.default")
+
+  if err = ioutil.WriteFile(filePath, buffer.Bytes(),
     0644); err != nil {
     panic(err.Error())
   }
 
-  fmt.Printf("print config ok! file: %s\n", j.printFileName())
-}
-
-func (j *JsonConfig) printFileName() string  {
-  return path.Join(j.PrintDir, "config.json.default")
+  fmt.Printf("print config ok! file: %s\n", filePath)
 }
 
