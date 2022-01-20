@@ -4,10 +4,9 @@ import (
   "bytes"
   "encoding/json"
   "fmt"
-  "github.com/xpwu/go-config/config/jsontype"
+  "github.com/xpwu/go-x/jsontype"
   "io/ioutil"
-  "os"
-  "path"
+  "path/filepath"
 )
 
 type JsonConfig struct {
@@ -22,16 +21,12 @@ func absFilePath(setValue, defaultValue string) string {
     filePath = defaultValue
   }
 
-  if !path.IsAbs(filePath) {
-    pwd, err := os.Getwd()
-    if err != nil {
-      panic(err)
-    }
-
-    filePath = path.Join(pwd, filePath)
+  filePath1,err := filepath.Abs(filePath)
+  if err != nil {
+    return filePath
   }
 
-  return filePath
+  return filePath1
 }
 
 func (j *JsonConfig) Read(allDefaultConfigs jsontype.Type) (allValues jsontype.Type) {
@@ -53,7 +48,7 @@ func (j *JsonConfig) Read(allDefaultConfigs jsontype.Type) (allValues jsontype.T
 
 func (j *JsonConfig) Print(allDefaultConfigs jsontype.Type) {
 
-  data,err := json.Marshal(allDefaultConfigs)
+  data,err := jsontype.ToJson(allDefaultConfigs)
   if err != nil {
     panic("cant json.marshal for config. " + err.Error())
   }

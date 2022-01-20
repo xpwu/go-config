@@ -2,7 +2,7 @@ package config
 
 import (
 	"errors"
-	"github.com/xpwu/go-config/config/jsontype"
+	"github.com/xpwu/go-x/jsontype"
 	"reflect"
 	"strings"
 )
@@ -156,7 +156,7 @@ func parseTage(tag reflect.StructTag) (key, tips string) {
 
 func getAllDefaultConfigs() (allDefaultConfigs jsontype.Type) {
 
-	return jsontype.FromInterface(allConfigs, parseTage)
+	return jsontype.FromGoType(allConfigs, parseTage)
 }
 
 func Read() {
@@ -173,7 +173,7 @@ func Read() {
 
 	values := confer.Read(getAllDefaultConfigs())
 
-	err := values.Value(&allConfigs, func(tag reflect.StructTag) (name string) {
+	err := jsontype.ToGoType(values, &allConfigs, func(tag reflect.StructTag) (name string) {
 		name,_ = parseTage(tag)
 		return
 	})
@@ -188,7 +188,12 @@ func Print() {
 	confer.Print(getAllDefaultConfigs())
 }
 
-// todo
+// todo: detail error
 func Valid() error {
+	need := getAllDefaultConfigs()
+	read := confer.Read(need)
+	if !read.Include(need) {
+		return errors.New("缺少字段或者类型不匹配")
+	}
 	return nil
 }

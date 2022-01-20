@@ -44,3 +44,7 @@ func TestRead(t *testing.T) {
 	a := assert.New(t)
 	a.EqualValues(expectV, configValue)
 }
+
+func TestValid(t *testing.T) {
+	assert.NoError(t, Valid())
+}

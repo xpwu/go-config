@@ -1,6 +1,6 @@
 package config
 
-import "github.com/xpwu/go-config/config/jsontype"
+import "github.com/xpwu/go-x/jsontype"
 
 type Configurator interface {
   Read(allDefaultConfigs jsontype.Type) (allConfigs jsontype.Type)
