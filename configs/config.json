@@ -1,5 +1,5 @@
 {
-	"github.com/xpwu/go-config/config:configTest": {
+	"github.com/xpwu/go-config/configs:configTest": {
 		"LogLevel": 45,
 		"Name": "xpwu-0",
 		"Num": 11
