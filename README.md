@@ -29,7 +29,8 @@
 // tag: `conf:,tips,tip2` => key = ""; tips = tips,tip2
 // tag: `conf:,` => key = ""; tips = ""
 // tag: `conf:` => key = ""; tips = ""
-// tag: `` => key = ""; tips = ""
+
+// tag: `conf:-` ignore
 ```
 
 

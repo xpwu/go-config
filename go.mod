@@ -4,5 +4,5 @@ go 1.16
 
 require (
 	github.com/stretchr/testify v1.5.1
-	github.com/xpwu/go-x v0.0.0-20220120021151-4ac8ee529bca
+	github.com/xpwu/go-x v0.0.0-20220123075150-a3b3e80eea7e
 )

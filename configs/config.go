@@ -140,6 +140,7 @@ func HasRead() bool {
 // tag: `conf:,` => key = ""; tips = ""
 // tag: `conf:` => key = ""; tips = ""
 // tag: `` => key = ""; tips = ""
+// tag: `-` ignore
 func parseTage(tag reflect.StructTag) (key, tips string) {
 	content := tag.Get("conf")
 	if content == "" {
@@ -156,7 +157,9 @@ func parseTage(tag reflect.StructTag) (key, tips string) {
 
 func getAllDefaultConfigs() (allDefaultConfigs jsontype.Type) {
 
-	return jsontype.FromGoType(allConfigs, parseTage)
+	return jsontype.FromGoType(allConfigs, parseTage, func(name string)bool {
+		return name == "-"
+	})
 }
 
 func Read() {
