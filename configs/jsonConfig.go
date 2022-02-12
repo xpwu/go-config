@@ -34,7 +34,7 @@ func (j *JsonConfig) Read(allDefaultConfigs jsontype.Type) (allValues jsontype.T
 
   data,err := ioutil.ReadFile(filePath)
   if err != nil {
-    panic("cant read file: " + filePath)
+    panic("cant read config file: " + filePath)
   }
 
   allValues, err = jsontype.FromJson(data)
