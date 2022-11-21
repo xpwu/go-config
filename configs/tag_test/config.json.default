@@ -1,0 +1,14 @@
+{
+	"github.com/xpwu/go-config/configs/tag_test_test:configTest": {
+		"LogLevel": 2,
+		"Num": 0,
+		"Sub": {
+			"Sub1": false
+		},
+		"Subs": [
+			{
+				"Sub1": true
+			}
+		]
+	}
+}

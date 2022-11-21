@@ -45,6 +45,12 @@ func TestRead(t *testing.T) {
 	a.EqualValues(expectV, configValue)
 }
 
+var jsonV = &JsonConfig{
+	ReadFile:  "invalid.json",
+	PrintFile: "",
+}
+
 func TestValid(t *testing.T) {
-	assert.NoError(t, Valid())
+	SetConfigurator(jsonV)
+	assert.Error(t, Valid())
 }
