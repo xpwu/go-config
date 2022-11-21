@@ -21,18 +21,21 @@
 ## Tag
 
 ```
-// tag: `conf:name,tips` => key = name; tips = tips
-// tag: `conf:name,tips,tip2` => key = name; tips = tips,tip2
-// tag: `conf:name` => key = name; tips = ""
-// tag: `conf:name,` => key = name; tips = ""
-// tag: `conf:,tips` => key = ""; tips = tips
-// tag: `conf:,tips,tip2` => key = ""; tips = tips,tip2
-// tag: `conf:,` => key = ""; tips = ""
-// tag: `conf:` => key = ""; tips = ""
-
-// tag: `conf:-` ignore
+// tag: `conf:"name,tips"` => key = name; tips = tips
+// tag: `conf:"name,tips,tip2"` => key = name; tips = tips,tip2
+// tag: `conf:"name"` => key = name; tips = ""
+// tag: `conf:"name,"` => key = name; tips = ""
+// tag: `conf:",tips"` => key = ""; tips = tips
+// tag: `conf:",tips,tip2"` => key = ""; tips = tips,tip2
+// tag: `conf:","` => key = ""; tips = ""
+// tag: `conf:""` => key = ""; tips = ""
+// tag: `conf:"-"` ignore
 ```
 
+##### 对于使用 'conf:"-"' 定义的忽略域说明
+1、在使用Print打印配置时，不会输出此域；   
+2、如果在配置中配置了此域，会与其他域一样有效；   
+3、如果配置没有配置此域，则Read返回的配置中，此域会返回初始化的的值。
 
 ## jsonConfig  
 默认实现了json格式的配置输出，${key}-tips 的值即为对应key的帮助信息
@@ -40,3 +43,8 @@
 ## Configurator
 可以通过Configurator接口实现其他的配置输出格式；在main()中调用SetConfigurator()
 设置具体的输出类
+   
+## 支持的类型   
+所有可以被配置的项必须为以下类型：   
+bool, (u)int, (u)int(8,16,32,64), float(32,64), string, 
+struct, array, slice, ptr 其中slice与ptr不能为nil
