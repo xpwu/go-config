@@ -55,7 +55,7 @@ func validateType(value reflect.Value, itsKeyPath string, depth int) (err error)
     return errors.New("value of " + itsKeyPath + " is invalid")
   }
 
-  const maxDepth = 5
+  const maxDepth = 50
   if depth > maxDepth {
     return errors.New("nested depth of " + itsKeyPath +
       "is more than 5. The depth must be less than or equal 5")
@@ -90,7 +90,16 @@ func validateType(value reflect.Value, itsKeyPath string, depth int) (err error)
       }
     }
   case reflect.Struct:
+    ty := value.Type()
     for i := 0; i < value.NumField(); i++ {
+      if ty.Field(i).PkgPath != "" {
+        continue
+      }
+      tag, _ := parseTage(ty.Field(i).Tag)
+      if tag == "-" {
+        continue
+      }
+
       err = validateType(value.Field(i), itsKeyPath+"."+value.Type().Field(i).Name, depth+1)
       if err != nil {
         return
@@ -172,41 +181,126 @@ func getAllDefaultConfigs() (allDefaultConfigs jsontype.Type) {
   })
 }
 
+func getAllDefaultValue() jsontype.Type {
+  return jsontype.FromGoType(
+
+    allConfigs,
+    // 在取默认值时，"-" 标记的field，也需要返回
+    func(tag reflect.StructTag) (key, tips string) {
+      key, tips = parseTage(tag)
+      if key == "-" {
+        key = ""
+      }
+      return
+    },
+    func(name string) bool {
+      return false
+    })
+}
+
+func mergeJsonType(target jsontype.Type, from jsontype.Type) jsontype.Type {
+  switch target.Kind() {
+  default:
+    return target
+  case jsontype.SliceK:
+    return mergeSlice(target.(jsontype.Slice), from.(jsontype.Slice))
+  case jsontype.ObjectK:
+    return mergeObject(target.(jsontype.Object), from.(jsontype.Object))
+  }
+}
+
+func mergeSlice(target jsontype.Slice, from jsontype.Slice) jsontype.Slice {
+  if len(from) == 0 {
+    return target
+  }
+
+  zeroValue := from[0]
+  switch zeroValue.Kind() {
+  case jsontype.NullK, jsontype.NumberK, jsontype.StringK, jsontype.BoolK:
+    return target
+  }
+
+  result := make(jsontype.Slice, 0, len(target))
+  for _, v := range target {
+    result = append(result, mergeJsonType(v, zeroValue))
+  }
+
+  return result
+}
+
+func mergeObject(target jsontype.Object, from jsontype.Object) jsontype.Object {
+  result := make(jsontype.Object, 0, len(from)+len(target))
+
+  targetMap := make(map[string]jsontype.Type, len(target))
+  for _, v := range target {
+    targetMap[v.Key] = v.Value
+  }
+
+  for _, f := range from {
+    if v, ok := targetMap[f.Key]; ok {
+      t := make(jsontype.Object, 1)
+      t[0].Key = f.Key
+      t[0].Tips = f.Tips
+      t[0].Value = mergeJsonType(v, f.Value)
+
+      result = append(result, t...)
+      continue
+    }
+
+    // 不存在，就直接添加
+    result = append(result, f)
+  }
+
+  return result
+}
+
 func Read() {
+  if err := ReadWithErr(); err != nil {
+    panic(err.Error())
+  }
+}
+
+func ReadWithErr() error {
   isInit = true
 
   if hasRead {
-    return
+    return nil
   }
   hasRead = true
 
   if err := Valid(); err != nil {
-    panic(err.Error())
+    return err
   }
 
-  values := confer.Read(getAllDefaultConfigs())
+  values,err := confer.Read(getAllDefaultConfigs())
+  if err != nil {
+    return err
+  }
 
-  err := jsontype.ToGoType(values, &allConfigs, func(tag reflect.StructTag) (name string) {
+  // 合并默认值
+  values = mergeJsonType(values, getAllDefaultValue())
+
+  return jsontype.ToGoType(values, &allConfigs, func(tag reflect.StructTag) (name string) {
     name, _ = parseTage(tag)
+    // 在读的时候，忽略 '-' 配置，即使标记了'-'的域，如果配置文件中有对应的值，也可读取成功。
+    if name == "-" {
+      name = ""
+    }
     return
   })
-  if err != nil {
-    panic(err)
-  }
 }
 
-func Print() {
+func Print() error {
   isInit = true
 
-  confer.Print(getAllDefaultConfigs())
+  return confer.Print(getAllDefaultConfigs())
 }
 
-// todo: detail error
 func Valid() error {
   need := getAllDefaultConfigs()
-  read := confer.Read(need)
-  if !read.Include(need) {
-    return errors.New("缺少字段或者类型不匹配")
+  read,err := confer.Read(need)
+  if err != nil {
+    return err
   }
-  return nil
+  return read.IncludeErr(need, "")
 }
